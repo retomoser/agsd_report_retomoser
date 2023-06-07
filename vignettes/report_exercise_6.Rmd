@@ -80,5 +80,11 @@ The Davos and Laegeren research sites in Switzerland differ significantly in ter
 
 Since we make predictions with air quality may also the fact that Laegern is much closer to bigger cities than Davos and those inputs may vary a lot. To explain exactly why the prediction performed like above, I would have to go very deep in the features of the both sites for the time data was generated. I think it's an interesting approach to predict across-sites but it's probably more profitable for the project to spent the time on within the system boundaries you are interested in.
 
+# References
 
+Stocker Benjamin, Hufkens Koen, Arán Pepa, Schneider Pascal. Chapter 9 Supervised Machine Learning I | Applied Geodata Science. 3 Apr. 2023, geco-bern.github.io/agds/supervisedmli.html#comparison-of-the-linear-regression-and-knn-models.
+
+FLUXNET2015: CC-BY-4.0 License, DOI: https://doi.org/10.18140/FLX/1440134
+
+https://www.swissfluxnet.ethz.ch/index.php/sites/ch-lae-laegeren/site-info-ch-lae/ https://www.swissfluxnet.ethz.ch/index.php/sites/ch-dav-davos/site-info-ch-dav/
 
