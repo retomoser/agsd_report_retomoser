@@ -1,0 +1,91 @@
+---
+title: "re_stepwise"
+author: "Reto Moser"
+date: "2023-10-04"
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+```
+
+##Task
+
+In this Task I built a stepwise forward regression and model the GPP as a function of predictors in the dataset of half-hourly ecosystem fluxes. GPP is the total amount of CO2 fixed by land plants per unit time (gross primary production). First I loaded the necessaty libraries and the data. Looking at the dataset shows which predictor variables are available. In a next step, we define the predictor and response variables. 
+
+###Preparing data
+
+```{r}
+
+fluxes <- read_csv("data/df_for_stepwise_regression.csv")
+spec(fluxes)
+
+
+response <- fluxes$GPP_NT_VUT_REF
+predictors <- c("TA_F", "SW_IN_F", "LW_IN_F", "VPD_F", "PA_F", "P_F", "WS_F", "TA_F_MDS", "SW_IN_F_MDS", "LW_IN_F_MDS", "VPD_F_MDS", "CO2_F_MDS", "PPFD_IN", "USTAR")
+print(predictors)
+```
+
+##Evaluation of all bivariate models (single predictor)
+
+To calculate the Regression with all the predictors only using one after another without connecting them together I used an empty vector and a for-loop to calculate the R-squared of each predictor/response variable. After the highest R-squared value is taken and the linear regression calculated again I got the AIC and the name of the variable. In this case it is the variable for the photosynthetic photon flux density (PPFD_IN).
+
+```{r}
+rsquare <- c()
+for (predictor in predictors) {
+  formel <- formula(paste("GPP_NT_VUT_REF ~", predictor))
+  model <- lm(formel, data = fluxes)
+  summary_model <- summary(model)
+  print(summary_model)
+  r_square <- summary_model$r.squared
+  rsquare <- c(rsquare, r_square)
+  print(rsquare)
+}
+
+
+
+
+highest_r2 <- which.max(rsquare)
+name <- predictors[highest_r2]
+formel_2 <- formula(paste("GPP_NT_VUT_REF ~", name))
+model_2 <- lm(formel_2, data = fluxes)
+aic <- AIC(model_2)
+print(rsquare)
+cat("Lowest AIC:", aic, 
+    "Variable:", name)
+```
+
+#increase to p + 1
+
+```{r}
+response <- fluxes$GPP_NT_VUT_REF
+predictors <- c("TA_F", "SW_IN_F", "LW_IN_F", "VPD_F", "PA_F", "P_F", "WS_F", "TA_F_MDS", "SW_IN_F_MDS", "LW_IN_F_MDS", "VPD_F_MDS", "CO2_F_MDS", "PPFD_IN", "USTAR")
+
+small_aic <- Inf
+model_3 <- NULL
+
+for (i in 1:14) {
+     combinations <- combn(predictors, i)
+     for (j in 1:ncol(combinations)){
+       formel_p <- formula(paste("GPP_NT_VUT_REF ~", paste(combinations[,j], collapse = "+")))
+       model_3lm <- lm(formel_p, data = fluxes)
+       aic <- AIC(model_3lm)
+       if (aic < small_aic){
+         small_aic <- aic
+         model_3 <- model_3lm
+       } else {
+         break
+     }
+    }
+  }
+
+summary(model_3lm)
+print(small_aic)
+
+```
+
+

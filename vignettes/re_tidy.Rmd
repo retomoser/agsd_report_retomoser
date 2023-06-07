@@ -1,0 +1,81 @@
+---
+title: "re_tidy"
+author: "Reto Moser"
+date: "2023-03-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Loading Data, defining variables and group data
+
+I load the necessary packages for this report exercise.
+
+In the .csv file I cleaned all the unnecessary data by hand.
+
+With the read_csv2() command and semicolons as delimiter I loaded the .csv document. After reviewing it, the variable "time" had to be changed from character to numeric for the following tasks. With the command is.numeric I check if the change worked and if the variable time is now numeric.
+
+Then I grouped the data by experiment.
+
+```{r read data}
+
+library(tidyverse)
+library(readr)
+library(dplyr)
+
+data_S1 <- read_csv2("data/AGDS_report_1_tidy.csv")
+data_S1_head <- head(data_S1, n = 3)
+data_S1_head
+
+data_S1 <- data_S1 %>% mutate(time = as.numeric(time))
+is.numeric(data_S1$time)
+
+
+group_S1 <- group_by(data_S1, experiment)
+group_S1
+
+```
+
+## Calculate log-response-ratio 
+
+Instead of calculating the log response for each row in the .csv file and adding it to the file using the mutate() command, we need to obtain a single log-response ratio for each experiment. This means we should have a total of only 53 log-response ratios. To achieve this, we can use the summarize() command to summarize the rows for each experiment and calculate the mean log-response ratio, which is the desired outcome.
+
+```{r}
+group_S1_RR <- mutate(group_S1, RR = log(co2_increased_mean / co2_ambient_mean))
+group_S1_RR
+
+experiment_RR <- summarize(group_S1_RR, mean_log_ratio = mean(log(co2_increased_mean / co2_ambient_mean)))
+knitr::kable(experiment_RR)
+```
+
+## Aggregtae data into three time phases
+
+By creating a column named "Phase" I can group the data by years. I did this with the cut() command breaking the time-column at 0,3,6, and Infinity. Then labeling them as Early, Mid and Late phase. 
+
+- early phase (<3 years since start)
+- middle phase (3-6 years since start)
+- late phase (>6 years since start)
+
+Then I calculated the log-response-ratio for the three phases and then I aggregated the log-respond-ratios by taking their mean. 
+
+```{r}
+data_S1_RR <- mutate(data_S1, RR = log(co2_increased_mean / co2_ambient_mean))
+data_S1_RR
+
+data_S1_RR$Phase <- cut(data_S1_RR$time, breaks = c(0, 3, 6, Inf), 
+                       labels = c("Early phase", "Mid phase", "Late phase"), 
+                       include.lowest = TRUE)
+data_S1_RR
+data_S1_RR_head <- head(data_S1_RR, n = 3)
+knitr::kable(data_S1_RR_head)
+
+
+mean_RR_by_phase <- tapply(data_S1_RR$RR, data_S1_RR$Phase, mean)
+mean_RR_by_phase
+```
+
+
+
+

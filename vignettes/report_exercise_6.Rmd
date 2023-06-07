@@ -1,0 +1,84 @@
+---
+title: "report_exercise_6"
+author: "Reto Moser"
+output:
+    html_document:
+    toc: true
+    fig_caption: yes
+date: "2023-05-08"
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(tidyverse)
+library(knitr)
+library(ggplot2)
+library(dplyr)
+library(rsample)
+library(caret)
+library(rsample)
+library(recipes)
+
+daily_fluxes_davos <- read_csv("data/FLX_Davos.csv")
+daily_fluxes_lae <- read.csv("data/FLX_Laegern.csv")
+
+options(knitr.duplicate.label = "allow")
+
+source("C:/Users/Roger Moser/Documents/agsd_report_retomoser/vignettes/R-Codes_Texte/RCode_RepEx_6.R")
+
+```
+# Predictions
+For the across-, and within-side prediction I trained models like in the report exercise re_ml_01 for both sides. In that exercise you also find detailed descriptions. Like in exercise re_ml_01 the R chunk is very long and I used the source function to implement. 
+
+## Within-site predictions
+
+```{r, echo=FALSE, fig.cap= "Fig.1 Davos Within-Site"}
+print(davos_within_site)
+```
+
+```{r, echo=FALSE, fig.cap= "Fig.2 Laegern Within-Site"}
+
+print(laegern_within_site)
+```
+
+## Across-site prediction
+
+```{r, echo=FALSE, fig.cap= "Fig.3 Davos Across-Site"}
+
+print(davos_across_site)
+```
+
+```{r, echo=FALSE, fig.cap= "Fig.4 Laegern Across-Site"}
+
+print(laegern_across_site)
+```
+
+## Across-both-site prediction
+After trying different approaches to combine, split or train with the two data sets and not having success I decided to merge the data sets by TIMESTAMP. I received a new data set with the same amount of data from both sides. Now I was able to train a model with inputs from both sides and let it run with test sets from both sides.
+
+```{r, echo=FALSE, fig.cap= "Fig.5 Davos Across-Both-Sites"}
+
+print(davos_across_both)
+```
+
+```{r, echo=FALSE, fig.cap= "Fig.6 Laegern Across-Both-Sites"}
+
+print(laegern_across_both)
+```
+
+# Discussion
+
+In conclusion, prediction for Davos performed much better than for Laegern, even comparing the within-site predictions. Across-site predictions performed the worst of all our predictions. That makes sense, because we trained the model without any data from the site predicted, while in the other two model were trained with at least some data of the site. What pops in the eye as well is that the prediction for Davos within site and across both side has the exact same quality in terms of R(squared) and RMSE. To guess why these differences/similarities I first have a look at the features of both sites.
+
+The Seehornwald Davos research site is positioned at an elevation of 1639 meters in the Swiss Alps. It comprises a subalpine forest primarily composed of Norway spruce trees, with an average height of 18 meters and a leaf area index of 4 m2 m-2. The understorey vegetation consists mainly of dwarf shrubs like Vaccinium myrtillus and Vaccinium gaulterioides, as well as mosses. This site offers long-term measurements of regional climate, CO2 and microclimate profiles, tree physiological records, turbulent fluxes, atmospheric concentrations, and vegetation and soil properties. It serves as an excellent location for studying the effects of climate change on tree adaptation and the carbon balance of ecosystems. The research site follows a high forest management system with minimal thinning activities. The average annual temperature at this site is 4.3°C, and the average annual precipitation is 1020 mm.
+
+The research site at Laegeren is situated on the steep slopes of the Laegeren mountain in the Swiss Plateau, at an altitude of 800 meters above sea level. It consists of a highly diverse mixed forest dominated by beech and fir trees. The site is affiliated with the CarboEurope IP network, the NABEL air quality network, and the long-term forest ecosystem research site (LWF) of the WSL. Eddy covariance flux measurements have been conducted at this location since April 2004. The climate in the area is characterized by an average annual temperature of 8.6°C, with the warmest years recorded in 2018 and 2020. The main soil types at the site are rendzic leptosols and haplic cambisols, and it is managed as a high forest using a forest reserve silvicultural system.
+
+The Davos and Laegeren research sites in Switzerland differ significantly in terms of their geographical locations, altitudes, vegetation compositions, and climates. Davos is situated in the Swiss Alps at an elevation of 1639 meters, while Laegeren is located on the Swiss Plateau at 800 meters above sea level. Davos features a coniferous forest dominated by spruce trees, whereas Lägeren showcases a diverse mixed forest dominated by beech and fir trees. The average annual temperature at Davos is 4.3°C, whereas Laegeren experiences an average annual temperature of 8.6°C. These distinct characteristics provide valuable opportunities for studying forest ecology, carbon balance, and the impacts of climate change in different geographical and altitudinal contexts within Switzerland.
+
+Since we make predictions with air quality may also the fact that Laegern is much closer to bigger cities than Davos and those inputs may vary a lot. To explain exactly why the prediction performed like above, I would have to go very deep in the features of the both sites for the time data was generated. I think it's an interesting approach to predict across-sites but it's probably more profitable for the project to spent the time on within the system boundaries you are interested in.
+
+
+
