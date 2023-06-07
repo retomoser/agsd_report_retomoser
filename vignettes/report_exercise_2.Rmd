@@ -1,0 +1,132 @@
+---
+title: "report_exercise_2"
+author: "Reto Moser"
+date: "2023-13-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+In this exercise, I will work with the dataset airquality with information about air quality measurements in New York from May to September 1973.I loaded the dataset and the nececarry lybraries for this task.
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+aqny <- datasets::airquality
+```
+
+### Prepear Data
+
+For every plot I tydied and saved the variables I need first. It is easier to plot the data when the date is represented as a single variable instead of separate variables for the month and day. Using the "as.Date" command, I can create a Year-Month-Day variable by combining the monthly and day variables. In the dataset, there are already some missing values, as seen in the first few rows. To create the plots, I have decided to remove these missing values using the na.omit() function.
+
+## Figures
+
+### Line Plot with ozone levels over time
+
+```{r}
+aqny_ozone <- aqny %>% select(Month, Day, Ozone)
+aqny_ozone$Date <- as.Date(paste("1973", aqny_ozone$Month, aqny_ozone$Day, sep = "-"))
+
+aqny_ozone <- select(aqny_ozone, -Month, -Day)
+aqny_ozone <- na.omit(aqny_ozone)
+
+ozone <- gather(aqny_ozone, key = "Variable", value = "Value", -Date)
+
+ggplot(ozone, aes(x = Date, y = Value, color = Variable)) + 
+geom_line() +
+labs(title = "Ozone Levels from May to September 1973 (Fig. 1)", x = "Date", y = "Ozone Level (ppb)")
+```
+
+### Barplot with Temperature Daily
+
+```{r}
+aqny_daily <- aqny %>%
+  mutate(Date = as.Date(paste(1973, Month, Day, sep = "-"), "%Y-%m-%d")) %>%
+  select(Date, Temp) %>%
+  na.omit()
+
+ggplot(aqny_daily, aes(x = Date, y = Temp)) +
+  geom_bar(stat = "identity", fill = "blue", width = 0.5) +
+  labs(title = "Daily Temperature from May to September 1973 (Fig. 2)", x = "Date", y = "Temperature (F)") 
+```
+
+### Scatter Plot Temperature vs Ozone levels
+
+```{r}
+ggplot(data = aqny, aes(x = Temp, y = Ozone)) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE, col = "red") +
+  xlab("Temperature (F)") +
+  ylab("Ozone level (ppb)") +
+  ggtitle("Temperature vs Ozone level from May to September 1973 (Fig. 3)")
+```
+
+### Scatterplot of Ozone vs. Solar Radiation
+
+```{r}
+ggplot(data = aqny, aes(x = Solar.R, y = Ozone, color = Day)) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE, col = "red") +
+  xlab("Solar Radiation (Langleys)") +
+  ylab("Ozone (ppb)") +
+  ggtitle("Scatterplot of daily Solar Radiation vs. Ozone from May to September 1973 (Fig. 4)")
+```
+
+##Statistical Metrics
+
+### Mean of Ozone for each month
+```{r}
+ozone_monthly <- aqny %>%
+  mutate(month = as.Date(paste(1973, Month, "1", sep = "-"), "%Y-%m-%d")) %>%
+  group_by(month = lubridate::floor_date(month, unit = "month")) %>%
+  summarise(mean_ozone = mean(Ozone, na.rm = TRUE))
+
+print(ozone_monthly)
+```
+
+This mean can be used to determine if the Ozone levels are increased or harmful to human life.
+
+### Correlations between the variables
+
+With the command cor(), I can calculate this value, which can range from -1 to +1. The negative values being negative correlations, and the postivie values positive correlations. If the correlation is positiv, that means if one Input increases, the other increases as well.
+
+```{r}
+aqny_correlation <- na.omit(aqny)
+
+correlation <- cor(aqny_correlation[, c("Ozone", "Solar.R", "Wind", "Temp")])
+print(correlation)
+```
+
+Correlations:
+- Ozone/Solar.R = 0.35, positive correlation.
+- Ozone/Wind = -0.61, negative correlation. 
+- Ozone/Temp = 0.70 strong positive correlation. 
+- Solar.R = -0.12 weak negative correlation.
+- Solar.R/Temp = 0.29 positive correlation.
+- Wind/Temp = -0.50 
+
+### Percentiles of Temperature
+
+```{r}
+temp_percent <- quantile(aqny$Temp, c(0.25, 0.5, 0.75), na.rm = TRUE)
+
+print(paste("Temperature Percentiles:", temp_percent))
+```
+
+## Discussion
+Assessing air quality involves considering ground-level ozone as an important factor, which is formed through reactions with gases in the presence of sunlight. As shown in Fig.1, ozone concentrations are particularly high during the months of June-September, often exceeding 100 parts per billion, which surpasses the level set by the WHO Air quality guideline. The mean ozone levels in July and August exceed 50, indicating a moderate risk according to the World Health Organization (WHO). The line plot reveals numerous extreme ozone levels during these months, indicating rapid changes in concentration.
+
+Analyzing temperatures from May-September, we calculate the 25th, 50th, and 75th percentiles, resulting in values of 72, 79, and 85, respectively. Generally, temperatures are high, with the top 25% reaching above 85°F. Fig.2 demonstrates that June, July, and August are the warmest months. A hypothesis suggests a correlation between ozone and temperature, which is visualized in Fig.3, indicating a correlation between these variables.
+
+According to the WHO guidelines, ozone formation is a result of gas reactions with sunlight, implying that temperature might be an outcome of increased solar radiation rather than directly influencing heightened ozone levels (World Health Organization: WHO). Fig.4 displays the correlation between ozone and solar radiation, further suggesting a correlation.
+
+Statistical calculations confirm the correlations between variables. The outcome for ozone vs. solar radiation is 0.35, indicating a positive correlation. The correlation between ozone and temperature is even higher at 0.70. However, since we have referred to the WHO guidelines, we can confidently state that the effect of higher ozone levels stems from increased solar radiation, with temperature being a consequence of this elevated radiation.
+
+Interestingly, there is a strong negative correlation between ozone levels and wind speed. Investigating this further could reveal insights into rainy/stormy days with significant wind and no ozone production, or sunny days with high wind dispersing the formed ozone across urban and rural areas. Exploring this correlation could be a potential avenue for further examination of air quality.
+
+### Literature:
+
+World Health Organization: WHO. “Ambient (Outdoor) Air Pollution.” www.who.int, Dec. 2022, www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health.
